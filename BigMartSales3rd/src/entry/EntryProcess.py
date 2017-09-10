@@ -10,12 +10,12 @@ if __name__ == '__main__':
     OutputDir = '%s/Preprocess' % DataDir
 
     tasks = ['holdout', 'kfold']
-    #Preprocess.run(tasks, InputDir, OutputDir)
+    Preprocess.run(tasks, InputDir, OutputDir)
 
     ## Engineering
     InputDir = '%s/Preprocess' % DataDir
     OutputDir = '%s/FeatureEngineering' % DataDir
     #
-    tasks = ['MissingValue']
+    tasks = ['MissingValue', 'FeatureEncoding']
     fe = FeatureEngineering(InputDir, OutputDir)
-    fe.run(tasks)
+    fe.run(tasks, encode_type= 'onehot')
