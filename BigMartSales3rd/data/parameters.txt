@@ -1,0 +1,108 @@
+{
+	'L1':
+		{
+		'lgb':
+			{
+				'variants':
+					[
+						{'objective': 'regression_l1'},
+						{'objective': 'regression_l2'},
+						{'objective': 'huber'},
+						{'objective': 'fair'}
+					],
+				'params':
+					[
+						{
+							"boosting": "gbdt",
+							"objective": "regression_l1",
+							"lambda_l1": 0.01,
+
+							"num_iterations": 200,
+							"learning_rate": 0.02,
+							"min_data_in_leaf": 60,
+							"num_leaves": 8,
+
+							"feature_fraction": 0.9,
+							"bagging_fraction": 0.85,
+							"bagging_freq": 12,
+							"min_hessian": 0.01,
+						},
+						{
+							"boosting": "gbdt",
+							"objective": "regression_l1",
+							"lambda_l1": 0.01,
+
+							"num_iterations": 200,
+							"learning_rate": 0.02,
+							"min_data_in_leaf": 60,
+							"num_leaves": 15,
+
+							"feature_fraction": 0.9,
+							"bagging_fraction": 0.85,
+							"bagging_freq": 12,
+							"min_hessian": 0.01,
+						},
+						{
+							"boosting": "gbdt",
+							"objective": "regression_l2",
+							"lambda_l1": 0.01,
+
+							"num_iterations": 200,
+							"learning_rate": 0.04,
+							"min_data_in_leaf": 100,
+							"max_depth": 7,
+
+							"feature_fraction": 0.9,
+							"bagging_fraction": 0.85,
+							"bagging_freq": 12,
+							"min_hessian": 0.01,
+						},
+						{
+							"boosting": "gbdt",
+							"objective": "regression_l2",
+							"lambda_l1": 0.01,
+
+							"num_iterations": 200,
+							"learning_rate": 0.06,
+							"min_data_in_leaf": 100,
+							"max_depth": 7,
+
+							"feature_fraction": 0.9,
+							"bagging_fraction": 0.85,
+							"bagging_freq": 12,
+							"min_hessian": 0.01,
+						},
+						{
+							"boosting": "gbdt",
+							"objective": "huber",
+							"huber_delta": 1.0,
+
+							"num_iterations": 200,
+							"learning_rate": 0.04,
+							"min_data_in_leaf": 100,
+							"num_leaves": 15,
+
+							"feature_fraction": 0.9,
+							"bagging_fraction": 0.85,
+							"bagging_freq": 12,
+							"min_hessian": 0.01,
+						},
+						{
+							"boosting": "gbdt",
+							"objective": "huber",
+							"fair_c": 10.0,
+
+							"num_iterations": 200,
+							"learning_rate": 0.04,
+							"min_data_in_leaf": 100,
+							"num_leaves": 15,
+
+							"feature_fraction": 0.9,
+							"bagging_fraction": 0.85,
+							"bagging_freq": 12,
+							"min_hessian": 0.01,
+						},
+					]
+			}
+		}
+}
