@@ -1,13 +1,14 @@
-from model.ModelBase import ModelBase
-from sklearn.linear_model import ElasticNet
-from sklearn.linear_model import ElasticNetCV
-import pandas as pd
-import numpy as np
-import dill as pickle
-import time,os
-from datetime import datetime
-from sklearn.cross_validation import StratifiedKFold,cross_val_score
 import gc
+import os
+import time
+from datetime import datetime
+
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import ElasticNet
+
+from model import ModelBase
+
 
 class EN(ModelBase):
 

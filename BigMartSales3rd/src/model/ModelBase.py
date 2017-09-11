@@ -8,16 +8,18 @@ class ModelBase(object):
 
     InputDir = ''
     OutputDir = ''
+    data_format= 'pkl'
     parameters = {}
     kfold = 5
 
-    def __init__(self, params, kfold, InputDir,OutputDir):
+    def __init__(self, params, kfold, InputDir, OutputDir, data_format= 'pkl'):
         """"""
         ## initial
         self.InputDir = InputDir
         self.OutputDir = OutputDir
         self.parameters = params
         self.kfold = kfold
+        self.data_format = data_format
         ## new output directory
         if(os.path.exists(OutputDir) == False):
             os.makedirs(OutputDir)

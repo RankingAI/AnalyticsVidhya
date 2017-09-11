@@ -4,6 +4,7 @@ import os,sys
 import dill as pickle
 from feat.MissingValue import  MissingValue
 from feat.FeatureEncoding import FeatureEncoding
+from util.DataUtil import DataUtil
 
 class FeatureEngineering:
     """"""
@@ -82,11 +83,6 @@ class FeatureEngineering:
             self.__LaunchTask(task, encode_type= encode_type)
         if (os.path.exists(KFoldOutputDir) == False):
             os.makedirs(KFoldOutputDir)
-        with open('%s/train.pkl' % KFoldOutputDir, 'wb') as tr_file, open('%s/test.pkl' % KFoldOutputDir,'wb') as te_file:
-            pickle.dump(self.TrainData, tr_file, -1)
-            pickle.dump(self.TestData, te_file, -1)
-        tr_file.close()
-        te_file.close()
         ##
         for fold in range(self._kfold):
             print('\n==== fold %s begins ...' % fold)
@@ -107,11 +103,8 @@ class FeatureEngineering:
             ## save
             if (os.path.exists(FoldOutputDir) == False):
                 os.makedirs(FoldOutputDir)
-            with open('%s/train.pkl' % FoldOutputDir, 'wb') as tr_file, open('%s/test.pkl' % FoldOutputDir, 'wb') as te_file:
-                pickle.dump(self.TrainData, tr_file, -1)
-                pickle.dump(self.TestData, te_file, -1)
-            tr_file.close()
-            te_file.close()
+            DataUtil.save(self.TrainData, '%s/train.csv' % FoldOutputDir, format='csv')
+            DataUtil.save(self.TestData, '%s/test.csv' % FoldOutputDir, format='csv')
 
             print('\n==== fold %s done.' % fold)
 
@@ -137,12 +130,8 @@ class FeatureEngineering:
         ## save
         if (os.path.exists(HoldoutOutputDir) == False):
             os.makedirs(HoldoutOutputDir)
-        with open('%s/test.pkl' % HoldoutOutputDir, 'wb') as te_file,\
-            open('%s/train.pkl' % HoldoutOutputDir, 'wb') as tr_file:
-            pickle.dump(self.TestData, te_file, -1)
-            pickle.dump(self.TrainData, tr_file, -1)
-        te_file.close()
-        tr_file.close()
+        DataUtil.save(self.TrainData, '%s/train.csv' % HoldoutOutputDir, format= 'csv')
+        DataUtil.save(self.TestData, '%s/test.csv' % HoldoutOutputDir, format= 'csv')
 
         print('\n==== Engineering for holdout done ====')
         return

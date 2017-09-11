@@ -1,12 +1,13 @@
+import os
 import time
+
 import lightgbm
 import numpy as np
 import pandas as pd
-import sys
-import os
-import dill as pickle
-from datetime import datetime
+
 from model.ModelBase import ModelBase
+from util.DataUtil import DataUtil
+
 
 class LGB(ModelBase):
     """"""
@@ -14,36 +15,32 @@ class LGB(ModelBase):
 
     _l_drop_cols = ['Item_Outlet_Sales', 'index']
 
-    ## training, parameter tuning for single model
+    ## training, parameter tuning for single L1
     def train(self, importance = False):
         """"""
         print('\n parameters %s n' % self.parameters)
         d_fold_val = {}
         for fold in range(self.kfold):
             print('\n---- fold %s begins.\n' %fold)
+
             ## load data
-            with open('%s/kfold/%s/train.pkl' % (self.InputDir, fold), 'rb') as tr_file, \
-                    open('%s/kfold/%s/test.pkl' % (self.InputDir, fold), 'rb') as te_file:
-                self.TrainData = pickle.load(tr_file)
-                self.TestData = pickle.load(te_file)
-            tr_file.close()
-            te_file.close()
+            TrainFile = '%s/kfold/%s/train.%s' % (self.InputDir, fold, self.data_format)
+            TestFile = '%s/kfold/%s/test.%s' % (self.InputDir, fold, self.data_format)
+            self.TrainData = DataUtil.load(TrainFile, format= self.data_format)
+            self.TestData = DataUtil.load(TestFile, format= self.data_format)
+
             ## train and predict on valid
             self.__fit()
             eval = self.__predict()
-
             d_fold_val[fold] = eval
 
             ## save
             OutputDir = '%s/kfold/%s' % (self.OutputDir, fold)
             if (os.path.exists(OutputDir) == False):
                 os.makedirs(OutputDir)
-            with open('%s/train.pkl' % OutputDir,'wb') as tr_file,\
-                open('%s/test.pkl' % OutputDir, 'wb') as te_file:
-                pickle.dump(self.TrainData, tr_file, -1)
-                pickle.dump(self.TestData, te_file, -1)
-            tr_file.close()
-            te_file.close()
+            DataUtil.save(self.TrainData, '%s/train.%s' % (OutputDir, self.data_format), format= self.data_format)
+            DataUtil.save(self.TestData, '%s/test.%s' % (OutputDir, self.data_format), format= self.data_format)
+
             print('\n---- Fold %d done. ----\n' % fold)
 
         return d_fold_val
@@ -52,38 +49,54 @@ class LGB(ModelBase):
     def infer(self, head, HoldoutData):
         """"""
         ##
+        l_pred_fold = []
         PredHoldout = pd.DataFrame(index= HoldoutData.index)
         PredHoldout['index'] = HoldoutData['index']
         PredHoldout['Item_Outlet_Sales'] = HoldoutData['Item_Outlet_Sales']
         for fold in range(self.kfold):
             ## load
-            with open('%s/kfold/%s/train.pkl' % (self.InputDir, fold), 'rb') as tr_file, \
-                    open('%s/kfold/%s/test.pkl' % (self.InputDir, fold), 'rb') as te_file:
-                self.TrainData = pickle.load(tr_file)
-                self.TestData = pickle.load(te_file)
-            tr_file.close()
-            te_file.close()
+            TrainFile = '%s/kfold/%s/train.%s' % (self.InputDir, fold, self.data_format)
+            TestFile = '%s/kfold/%s/test.%s' % (self.InputDir, fold, self.data_format)
+            self.TrainData = DataUtil.load(TrainFile, format= self.data_format)
+            self.TestData = DataUtil.load(TestFile, format= self.data_format)
+
             ## fit
-            PredTest = pd.DataFrame(index= self.TestData.index)
-            PredTest['index'] = self.TestData['index']
+            PredFold = pd.DataFrame(index= self.TestData.index)
+            PredFold['index'] = self.TestData['index']
+            PredFold['Item_Outlet_Sales'] = self.TestData['Item_Outlet_Sales']
+            PredFold['fold'] = fold
             self.__fit()
-            ## inferring for test data in folds
-            x_test = self.TestData[self._l_train_columns]
-            PredTest[head] = self._model.predict(x_test)
-            ## inferring for holdout data
+
+            ## inferring
+            PredFold[head] = self._model.predict(self.TestData[self._l_train_columns])
             PredHoldout['fold%s' % (fold)] = self._model.predict(HoldoutData[self._l_train_columns])
-            ## save
-            OutputDir = '%s/kfold' % (self.OutputDir)
-            if (os.path.exists(OutputDir) == False):
+            l_pred_fold.append(PredFold)
+        ## aggregate folds data
+        PredKFold = pd.concat(l_pred_fold, axis= 0, ignore_index= True)
+        ## save for folds data
+        for fold in range(self.kfold):
+            OutputDir = '%s/kfold/%s' % (self.OutputDir, fold)
+            if(os.path.exists(OutputDir) == False):
                 os.makedirs(OutputDir)
-            PredTest.to_csv('%s/%s.csv' % (OutputDir, fold), float_format= '%.4f', index= False)
+            TrainFile = '%s/train.%s' % (OutputDir, self.data_format)
+            TestFile = '%s/test.%s' % (OutputDir, self.data_format)
+
+            TrainData = PredKFold[PredKFold['fold'] != fold]
+            TestData = PredKFold[PredKFold['fold'] == fold]
+            DataUtil.save(TrainData, TrainFile, format= self.data_format)
+            DataUtil.save(TestData, TestFile, format= self.data_format)
+
+        ## save for holdout data
         HoldCols = [col for col in PredHoldout.columns if col.startswith('fold')]
         PredHoldout[head] = PredHoldout[HoldCols].mean(axis= 1)
-        PredHoldout.to_csv('%s/holdout.csv' % (self.OutputDir), float_format='%.4f', index= False)
+        OutputDir = '%s/holdout' % self.OutputDir
+        if (os.path.exists(OutputDir) == False):
+            os.makedirs(OutputDir)
+        DataUtil.save(PredHoldout, '%s/test.%s' % (OutputDir, self.data_format), format= self.data_format)
 
         return
 
-    ## model fitting
+    ## L1 fitting
     def __fit(self):
         """"""
         start = time.time()
