@@ -37,9 +37,5 @@ class ModelBase(object):
         """"""
 
     @abc.abstractmethod
-    def infer(self, head, holdout, metric_pk= False):
-        """"""
-
-    @abc.abstractmethod
-    def submit(self):
+    def infer(self, head, holdout, submit, metric_pk= False):
         """"""

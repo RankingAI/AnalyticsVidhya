@@ -10,27 +10,16 @@ if __name__ == '__main__':
         d_params = eval(i_file.read())
     i_file.close()
 
-    ## L1
-    InputDir = '%s/feat/FeatureEngineering' % DataDir
-    strategies = ['lr', 'lgb', 'en']
-    for strategy in strategies:
-        print('\n ==== Task for %s begins.  ====\n' % strategy)
-
-        start = time.time()
-        print(d_params['L1'][strategy])
-        ModelTask.run(strategy, d_params['L1'][strategy], InputDir, '%s/L1' % DataDir, data_format= 'csv', metric_pk= False)
-        end = time.time()
-
-        print('\n ==== Task for %s done, time consumed %s. ====\n' % (strategy, (end - start)))
-
-    ## L2
-    # InputDir = '%s/L1/aggregate' % DataDir
-    # strategies = ['en']
-    # for strategy in strategies:
-    #     print('\n ==== Task for %s begins.  ====\n' % strategy)
-    #
-    #     start = time.time()
-    #     ModelTask.run(strategy, d_params['L2'][strategy], InputDir, '%s/L2' % DataDir, data_format= 'csv', metric_pk= True)
-    #     end = time.time()
-    #
-    #     print('\n ==== Task for %s done, time consumed %s. ====\n' % (strategy, (end - start)))
+    input = '%s/feat/FeatureEngineering' % DataDir
+    ## stack model
+    strategies = [['lgb', 'lr', 'en']]
+    S = 1 ## #start layer
+    N = 2 ## #total layers+1
+    for i in range(S, N):
+        if(i == 1):
+            InputDir = input ## first layer
+        else:
+            InputDir = '%s/L%s' % (DataDir, i - 1)
+        OutputDir = '%s/L%s' % (DataDir, i)
+        mt = ModelTask(i, strategies[i - 1], d_params, InputDir, OutputDir, data_format= 'csv')
+        mt.run()

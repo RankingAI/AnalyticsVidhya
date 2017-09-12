@@ -44,13 +44,14 @@ class LGB(ModelBase):
         return d_fold_val
 
     ## inferring for fold data and holdout data
-    def infer(self, head, HoldoutData, metric_pk= False):
+    def infer(self, head, HoldoutData, SubmitData, metric_pk= False):
         """"""
         ##
         l_pred_fold = []
         PredHoldout = pd.DataFrame(index= HoldoutData.index)
         PredHoldout['index'] = HoldoutData['index']
         PredHoldout['Item_Outlet_Sales'] = HoldoutData['Item_Outlet_Sales']
+        PredSubmit = pd.DataFrame(index= SubmitData.index)
         for fold in range(self.kfold):
             ## load
             TrainFile = '%s/kfold/%s/train.%s' % (self.InputDir, fold, self.data_format)
@@ -68,29 +69,36 @@ class LGB(ModelBase):
             ## inferring
             PredFold[head] = self._model.predict(self.TestData[self._l_train_columns])
             PredHoldout['fold%s' % (fold)] = self._model.predict(HoldoutData[self._l_train_columns])
+            PredSubmit['fold%s' % fold] = self._model.predict(SubmitData[self._l_train_columns])
             l_pred_fold.append(PredFold)
         ## aggregate folds data
         PredKFold = pd.concat(l_pred_fold, axis= 0, ignore_index= True)
         ## save for folds data
         for fold in range(self.kfold):
-            OutputDir = '%s/kfold/%s' % (self.OutputDir, fold)
-            if(os.path.exists(OutputDir) == False):
-                os.makedirs(OutputDir)
-            TrainFile = '%s/train.%s' % (OutputDir, self.data_format)
-            TestFile = '%s/test.%s' % (OutputDir, self.data_format)
+            FoldOutputDir = '%s/kfold/%s' % (self.OutputDir, fold)
+            if(os.path.exists(FoldOutputDir) == False):
+                os.makedirs(FoldOutputDir)
+            TrainFile = '%s/train.%s' % (FoldOutputDir, self.data_format)
+            TestFile = '%s/test.%s' % (FoldOutputDir, self.data_format)
 
             TrainData = PredKFold[PredKFold['fold'] != fold]
             TestData = PredKFold[PredKFold['fold'] == fold]
             DataUtil.save(TrainData, TrainFile, format= self.data_format)
             DataUtil.save(TestData, TestFile, format= self.data_format)
 
-        ## save for holdout data
         HoldCols = [col for col in PredHoldout.columns if col.startswith('fold')]
+        ## save for holdout data
         PredHoldout[head] = PredHoldout[HoldCols].mean(axis= 1)
-        OutputDir = '%s/holdout' % self.OutputDir
-        if (os.path.exists(OutputDir) == False):
-            os.makedirs(OutputDir)
-        DataUtil.save(PredHoldout, '%s/test.%s' % (OutputDir, self.data_format), format= self.data_format)
+        HoldoutOutputDir = '%s/holdout' % self.OutputDir
+        if (os.path.exists(HoldoutOutputDir) == False):
+            os.makedirs(HoldoutOutputDir)
+        DataUtil.save(PredHoldout, '%s/test.%s' % (HoldoutOutputDir, self.data_format), format= self.data_format)
+        ## save for submit data
+        PredSubmit[head] = PredSubmit[HoldCols].mean(axis=1)
+        SubmitOutputDir = '%s/submit' % self.OutputDir
+        if (os.path.exists(SubmitOutputDir) == False):
+            os.makedirs(SubmitOutputDir)
+        DataUtil.save(PredSubmit, '%s/test.%s' % (SubmitOutputDir, self.data_format), format=self.data_format)
 
         ## metric PK
         if (metric_pk):

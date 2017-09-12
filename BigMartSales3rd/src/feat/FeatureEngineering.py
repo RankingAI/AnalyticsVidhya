@@ -55,7 +55,6 @@ class FeatureEngineering:
 
     def run(self, tasks, encode_type = 'simple'):
         """"""
-        ## for kfold
         print('\n==== Engineering for kfold begins ====')
         ## load category values
         with open('%s/holdout/category.pkl' % self._InputDir, 'rb') as ca_file,\
@@ -73,7 +72,7 @@ class FeatureEngineering:
 
         KFoldInputDir = '%s/kfold' % self._InputDir
         KFoldOutputDir = '%s/kfold' % self._OutputDir
-        ##
+        #### for submit, public test
         with open('%s/train.pkl' % KFoldInputDir, 'rb') as tr_file, open('%s/test.pkl' % KFoldInputDir, 'rb') as te_file:
             self.TrainData = pickle.load(tr_file)
             self.TestData = pickle.load(te_file)
@@ -81,9 +80,12 @@ class FeatureEngineering:
         te_file.close()
         for task in tasks:
             self.__LaunchTask(task, encode_type= encode_type)
+        ## save submit, public test
         if (os.path.exists(KFoldOutputDir) == False):
             os.makedirs(KFoldOutputDir)
-        ##
+        DataUtil.save(self.TrainData, '%s/train.csv' % KFoldOutputDir, format='csv')
+        DataUtil.save(self.TestData, '%s/test.csv' % KFoldOutputDir, format='csv')
+        #### for kfold, local CV
         for fold in range(self._kfold):
             print('\n==== fold %s begins ...' % fold)
 
