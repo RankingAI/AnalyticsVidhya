@@ -1,23 +1,24 @@
-import gc
-import json
-import os
-import time
+import time,os,json,gc
 
 import numpy as np
 import pandas as pd
 
-from model.LightGBM import LGB
 from util.DataUtil import DataUtil
 
+from model.LightGBM import LGB
+from model.ElasticNet import EN
+from model.LinearRegression import LR
 
 class ModelTask:
     """"""
     kfold = 5
 
     @classmethod
-    def __LaunchTask(cls, strategy, d_params, task, InputDir, OutputDir, data_format):
+    def __LaunchTask(cls, strategy, d_params, task, InputDir, OutputDir, data_format, metric_pk):
         d_strategy = {
-            'lgb': LGB
+            'lgb': LGB,
+            'en': EN,
+            'lr': LR
         }
 
         print('\n ==== Strategy %s, task %s begins. ==== \n' % (strategy, task))
@@ -38,6 +39,8 @@ class ModelTask:
             for variant in d_params['variants']:
                 #### for check
                 #if(variant['objective'] not in ['regression_l2', 'regression_l1']):
+                #    continue
+                #if(variant['selection'] not in ['random']):
                 #    continue
                 ####
                 l_var_evals = []
@@ -98,19 +101,23 @@ class ModelTask:
                 if(os.path.exists(VarOutputDir) == False):
                     os.makedirs(VarOutputDir)
                 model = d_strategy[strategy](BestParams, cls.kfold, InputDir, VarOutputDir, data_format)
-                model.infer(head, HoldoutData)
+                model.infer(head, HoldoutData, metric_pk)
                 print('\n==== Model inferring for strategy %s, variant %s ends. ====\n' % (strategy, variant['variant']))
                 del model
                 gc.collect()
         elif(task == 'aggregate'):
             """"""
-            ModelFiles = os.listdir(InputDir)
+            #ModelFiles = os.listdir(InputDir)
+            l_variant_model = []
+            for variant in d_params['variants']:
+                variant_model = ':'.join(['%s#%s' % (VarKey, variant[VarKey]) for VarKey in variant])
+                l_variant_model.append('strategy#%s:%s' % (strategy, variant_model))
             ## for folds data
             for fold in range(cls.kfold):
                 l_train_fold = []
                 l_test_fold = []
                 ## load
-                for mf in ModelFiles:
+                for mf in l_variant_model:
                     TrainFile = '%s/%s/kfold/%s/train.%s' % (InputDir, mf, fold, data_format)
                     TestFile = '%s/%s/kfold/%s/test.%s' % (InputDir, mf, fold, data_format)
                     TrainData = DataUtil.load(TrainFile, data_format)
@@ -121,14 +128,14 @@ class ModelTask:
                 TrainFoldData = pd.DataFrame(index= l_train_fold[0].index)
                 TrainFoldData['index'] = l_train_fold[0]['index']
                 TrainFoldData['Item_Outlet_Sales'] = l_train_fold[0]['Item_Outlet_Sales']
-                for idx in range(len(ModelFiles)):
-                    TrainFoldData[ModelFiles[idx]] = l_train_fold[idx][ModelFiles[idx]]
+                for idx in range(len(l_variant_model)):
+                    TrainFoldData[l_variant_model[idx]] = l_train_fold[idx][l_variant_model[idx]]
                 ## aggregate for test
                 TestFoldData = pd.DataFrame(index= l_test_fold[0].index)
                 TestFoldData['index'] = l_test_fold[0]['index']
                 TestFoldData['Item_Outlet_Sales'] = l_test_fold[0]['Item_Outlet_Sales']
-                for idx in range(len(ModelFiles)):
-                    TestFoldData[ModelFiles[idx]] = l_test_fold[idx][ModelFiles[idx]]
+                for idx in range(len(l_variant_model)):
+                    TestFoldData[l_variant_model[idx]] = l_test_fold[idx][l_variant_model[idx]]
                 ## save
                 FoldOutputDir = '%s/kfold/%s' % (OutputDir, fold)
                 if(os.path.exists(FoldOutputDir) == False):
@@ -137,15 +144,15 @@ class ModelTask:
                 DataUtil.save(TestFoldData, '%s/test.%s' % (FoldOutputDir, data_format), format= 'csv')
             ## aggregate for holdout
             l_holdout = []
-            for mf in ModelFiles:
+            for mf in l_variant_model:
                 HoldoutFile = '%s/%s/holdout/test.%s' % (InputDir, mf, data_format)
                 holdout = DataUtil.load(HoldoutFile, data_format)
                 l_holdout.append(holdout)
             HoldoutData = pd.DataFrame(index= l_holdout[0].index)
             HoldoutData['index'] = l_holdout[0]['index']
             HoldoutData['Item_Outlet_Sales'] = l_holdout[0]['Item_Outlet_Sales']
-            for idx in range(len(ModelFiles)):
-                HoldoutData[ModelFiles[idx]] = l_holdout[idx][ModelFiles[idx]]
+            for idx in range(len(l_variant_model)):
+                HoldoutData[l_variant_model[idx]] = l_holdout[idx][l_variant_model[idx]]
             ## save
             HoldoutOutputDir = '%s/holdout' % OutputDir
             if (os.path.exists(HoldoutOutputDir) == False):
@@ -158,9 +165,10 @@ class ModelTask:
         return
 
     @classmethod
-    def run(cls, strategy, d_params, input, output, data_format= 'pkl'):
+    def run(cls, strategy, d_params, input, output, data_format= 'pkl', metric_pk= False):
         """"""
         tasks = ['train', 'infer', 'aggregate']
+        #tasks = ['train', 'infer']
 
         for i in range(len(tasks)):
             if (i == 0):
@@ -171,6 +179,6 @@ class ModelTask:
             if (os.path.exists(OutputDir) == False):
                 os.makedirs(OutputDir)
 
-            cls.__LaunchTask(strategy, d_params, tasks[i], InputDir, OutputDir, data_format)
+            cls.__LaunchTask(strategy, d_params, tasks[i], InputDir, OutputDir, data_format, metric_pk)
 
         return

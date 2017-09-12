@@ -76,14 +76,25 @@ class Preprocess:
                     for v in vals:
                         d_id_mean_values[col][v] = np.mean(TrainData.ix[TrainData[col] == v, 'Item_Outlet_Sales'])
                         d_id_median_values[col][v] = np.median(TrainData.ix[TrainData[col] == v, 'Item_Outlet_Sales'])
+                    if(NullCount > 0):
+                        d_id_mean_values[col]['missing'] = np.mean(TrainData.ix[TrainData[col].isnull(), 'Item_Outlet_Sales'])
+                        d_id_median_values[col]['missing'] = np.median(TrainData.ix[TrainData[col].isnull(), 'Item_Outlet_Sales'])
             for id in d_id_mean_values:
                 for val in d_id_mean_values[id]:
-                    TrainData.loc[TrainData[id] == val, '%s:mean' % id] = (d_id_mean_values[id][val])
-                    TestData.loc[TestData[id] == val, '%s:mean' % id] = (d_id_mean_values[id][val])
+                    if(val == 'missing'):
+                        TrainData.loc[TrainData[id].isnull(), '%s:mean' % id] = (d_id_mean_values[id][val])
+                        TestData.loc[TestData[id].isnull(), '%s:mean' % id] = (d_id_mean_values[id][val])
+                    else:
+                        TrainData.loc[TrainData[id] == val, '%s:mean' % id] = (d_id_mean_values[id][val])
+                        TestData.loc[TestData[id] == val, '%s:mean' % id] = (d_id_mean_values[id][val])
             for id in d_id_median_values:
                 for val in d_id_median_values[id]:
-                    TrainData.loc[TrainData[id] == val, '%s:median' % id] = (d_id_median_values[id][val])
-                    TestData.loc[TestData[id] == val, '%s:median' % id] = (d_id_median_values[id][val])
+                    if(val == 'missing'):
+                        TrainData.loc[TrainData[id].isnull(), '%s:median' % id] = (d_id_median_values[id][val])
+                        TestData.loc[TestData[id].isnull(), '%s:median' % id] = (d_id_median_values[id][val])
+                    else:
+                        TrainData.loc[TrainData[id] == val, '%s:median' % id] = (d_id_median_values[id][val])
+                        TestData.loc[TestData[id] == val, '%s:median' % id] = (d_id_median_values[id][val])
             TrainData['Item_MRP'] = (TrainData['Item_MRP'])
             TestData['Item_MRP'] = (TestData['Item_MRP'])
             with open('%s/category.pkl' % OutputDir, 'wb') as ca_file,\
