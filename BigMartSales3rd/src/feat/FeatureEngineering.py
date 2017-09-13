@@ -81,10 +81,11 @@ class FeatureEngineering:
         for task in tasks:
             self.__LaunchTask(task, encode_type= encode_type)
         ## save submit, public test
-        if (os.path.exists(KFoldOutputDir) == False):
-            os.makedirs(KFoldOutputDir)
-        DataUtil.save(self.TrainData, '%s/train.csv' % KFoldOutputDir, format='csv')
-        DataUtil.save(self.TestData, '%s/test.csv' % KFoldOutputDir, format='csv')
+        SubmitOutputDir = '%s/submit' % self._OutputDir
+        if (os.path.exists(SubmitOutputDir) == False):
+            os.makedirs(SubmitOutputDir)
+        DataUtil.save(self.TrainData, '%s/train.csv' % SubmitOutputDir, format='csv')
+        DataUtil.save(self.TestData, '%s/test.csv' % SubmitOutputDir, format='csv')
         #### for kfold, local CV
         for fold in range(self._kfold):
             print('\n==== fold %s begins ...' % fold)

@@ -58,8 +58,7 @@
 							"min_hessian": 0.01,
 						},
 						{
-							"boosting": "gbdt",
-							"objective": "regression_l2",
+							"boosting": "gbdt", "objective": "regression_l2",
 							"lambda_l1": 0.01,
 
 							"num_iterations": 200,
@@ -89,7 +88,7 @@
 						},
 						{
 							"boosting": "gbdt",
-							"objective": "huber",
+							"objective": "fair",
 							"fair_c": 10.0,
 
 							"num_iterations": 200,
@@ -102,7 +101,226 @@
 							"bagging_freq": 12,
 							"min_hessian": 0.01,
 						},
+						{
+							"boosting": "gbdt",
+							"objective": "fair",
+							"fair_c": 50.0,
+
+							"num_iterations": 200,
+							"learning_rate": 0.04,
+							"min_data_in_leaf": 100,
+							"num_leaves": 15,
+
+							"feature_fraction": 0.9,
+							"bagging_fraction": 0.85,
+							"bagging_freq": 12,
+							"min_hessian": 0.01,
+						},
+						{
+							"boosting": "gbdt",
+							"objective": "fair",
+							"fair_c": 30.0,
+
+							"num_iterations": 200,
+							"learning_rate": 0.04,
+							"min_data_in_leaf": 100,
+							"num_leaves": 15,
+
+							"feature_fraction": 0.9,
+							"bagging_fraction": 0.85,
+							"bagging_freq": 12,
+							"min_hessian": 0.01,
+						},
+					]
+			},
+		'en':
+			{
+				'variants':
+					[
+						{'selection': 'random'}
+					],
+				'params':
+					[
+						{
+							'alpha': 2.0,
+							'l1_ratio': 0.1,
+							'max_iter': 100,
+							'selection': 'random',
+							'tol': 1e-4
+						},
+					]
+			},
+		'lr':
+			{
+				'variants':
+					[
+						{'normalize': True}
+					],
+				'params':
+					[
+						{'normalize': True}
+					]
+			},
+		'rgf':
+			{
+				'variants':
+					[
+						{'algorithm': 'RGF'},
+						{'algorithm': 'RGF_Opt'},
+						{'algorithm': 'RGF_Sib'},
+					],
+				'params':
+					[
+						{
+							'algorithm': 'RGF',
+							'loss': 'LS',
+							'learning_rate': 0.2,
+							'n_iter': 5,
+							'reg_depth': 1.0,
+							'l2': 10.0,
+							'sl2': 5.0,
+							'min_samples_leaf': 0.1,
+							'max_leaf': 5000,
+						},
+						{
+							'algorithm': 'RGF_Opt',
+							'loss': 'LS',
+							'learning_rate': 0.2,
+							'n_iter': 5,
+							'reg_depth': 1.0,
+							'l2': 10.0,
+							'sl2': 5.0,
+							'min_samples_leaf': 0.1,
+							'max_leaf': 5000,
+						},
+						{
+							'algorithm': 'RGF_Sib',
+							'loss': 'LS',
+							'learning_rate': 0.2,
+							'n_iter': 5,
+							'reg_depth': 1.0,
+							'l2': 10.0,
+							'sl2': 5.0,
+							'min_samples_leaf': 0.1,
+							'max_leaf': 5000,
+						},
+					]
+			},
+		'rf':
+			{
+				'variants':
+					[
+						{'criterion': 'mae'},
+						{'criterion': 'mse'},
+					],
+				'params':
+					[
+						{
+							'criterion': 'mae',
+							'n_estimators': 20,
+							'max_depth': 6,
+							'max_features': 0.8,
+						},
+						{
+							'criterion': 'mse',
+							'n_estimators': 50,
+							'max_depth': 15,
+							'max_features': 0.8,
+						},
 					]
 			}
+		},
+	'L2':
+		{
+			'lgb':
+				{
+				'variants':
+					[
+						{'objective': 'fair'}
+					],
+				'params':
+					[
+						{
+							"boosting": "gbdt",
+							"objective": "fair",
+							"fair_c": 4000.0,
+
+							"num_iterations": 40,
+							"learning_rate": 0.04,
+							"min_data_in_leaf": 100,
+							"num_leaves": 7,
+
+							"feature_fraction": 0.9,
+							"bagging_fraction": 0.85,
+							"bagging_freq": 12,
+							"min_hessian": 0.0001,
+						},
+						{
+							"boosting": "gbdt",
+							"objective": "fair",
+							"fair_c": 6000.0,
+
+							"num_iterations": 40,
+							"learning_rate": 0.04,
+							"min_data_in_leaf": 100,
+							"num_leaves": 7,
+
+							"feature_fraction": 0.9,
+							"bagging_fraction": 0.85,
+							"bagging_freq": 12,
+							"min_hessian": 0.0001,
+						},
+						{
+							"boosting": "gbdt",
+							"objective": "fair",
+							"fair_c": 4000.0,
+
+							"num_iterations": 40,
+							"learning_rate": 0.04,
+							"min_data_in_leaf": 200,
+							"num_leaves": 7,
+
+							"feature_fraction": 0.9,
+							"bagging_fraction": 0.85,
+							"bagging_freq": 12,
+							"min_hessian": 0.0001,
+						},
+					]
+				},
+			'en':
+				{
+					'variants':
+						[
+							{'selection': 'random'}
+						],
+					'params':
+						[
+							{
+								'alpha': 0.1,
+								'l1_ratio': 0.1,
+								'max_iter': 100,
+								'selection': 'random',
+								'tol': 1e-5
+							},
+							{
+								'alpha': 0.8,
+								'l1_ratio': 0.8,
+								'max_iter': 400,
+								'selection': 'cyclic',
+								'tol': 1e-3
+							}
+						]
+				},
+			'lr':
+				{
+					'variants':
+						[
+							{'normalize': True}
+						],
+					'params':
+						[
+							{'normalize': True}
+						]
+				}
 		}
 }

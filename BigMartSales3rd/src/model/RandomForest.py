@@ -1,31 +1,36 @@
-import time,os
+"""
+BigMartSales3rd is a toy project for methodology validation of StackNet introduced by Marios Michailidis,
+ more details you can check https://github.com/kaz-Anova/StackNet. This is also a light weighted StackNet framed with 2-level stack.
+Created by yuanpingzhou on 09/13/2017, more discussions you can e-mail me through pingzhou.yuan1@gmail.com.math
+"""
 
-import lightgbm
+import time
 import numpy as np
 import pandas as pd
+import os
+import math
 
 from model.ModelBase import ModelBase
 from util.DataUtil import DataUtil
+from sklearn.ensemble import RandomForestRegressor
 
-class LGB(ModelBase):
+class RF(ModelBase):
     """"""
-    _max_bin = 63
-
     _l_drop_cols = ['Item_Outlet_Sales', 'index']
 
     ## training, parameter tuning for single L1
-    def train(self, importance = False):
+    def train(self, importance=False):
         """"""
-        print('\n parameters %s \n' % self.parameters)
+        print('\n Training for parameters %s \n' % self.parameters)
         d_fold_val = {}
         for fold in range(self.kfold):
-            print('\n---- fold %s begins.\n' %fold)
+            print('Fold %s begins.' % fold)
 
             ## load data
             TrainFile = '%s/kfold/%s/train.%s' % (self.InputDir, fold, self.data_format)
             TestFile = '%s/kfold/%s/test.%s' % (self.InputDir, fold, self.data_format)
-            self.TrainData = DataUtil.load(TrainFile, format= self.data_format)
-            self.TestData = DataUtil.load(TestFile, format= self.data_format)
+            self.TrainData = DataUtil.load(TrainFile, format=self.data_format)
+            self.TestData = DataUtil.load(TestFile, format=self.data_format)
 
             ## train and predict on valid
             self.__fit()
@@ -36,16 +41,19 @@ class LGB(ModelBase):
             OutputDir = '%s/kfold/%s' % (self.OutputDir, fold)
             if (os.path.exists(OutputDir) == False):
                 os.makedirs(OutputDir)
-            DataUtil.save(self.TrainData, '%s/train.%s' % (OutputDir, self.data_format), format= self.data_format)
-            DataUtil.save(self.TestData, '%s/test.%s' % (OutputDir, self.data_format), format= self.data_format)
+            DataUtil.save(self.TrainData, '%s/train.%s' % (OutputDir, self.data_format), format=self.data_format)
+            DataUtil.save(self.TestData, '%s/test.%s' % (OutputDir, self.data_format), format=self.data_format)
 
-            print('\n---- Fold %d done. ----\n' % fold)
+            print('Fold %d done. ' % fold)
+
+        print('\n Training done.\n')
 
         return d_fold_val
 
     ## inferring for fold data and holdout data
     def infer(self, head, HoldoutData, SubmitData, metric_pk= False):
         """"""
+        print('\n Inferring for %s begins. \n' % head)
         ##
         l_pred_fold = []
         PredHoldout = pd.DataFrame(index= HoldoutData.index)
@@ -113,6 +121,7 @@ class LGB(ModelBase):
             print('single model: %s, ensemble model %s: %s' % (d_metric, head, ensemble_metric))
             print('\n===== metric pk result ====\n')
 
+        print('\n Inferring don. \n')
         return
 
     ## L1 fitting
@@ -120,19 +129,24 @@ class LGB(ModelBase):
         """"""
         start = time.time()
         ##
-        id_cols = [col for col in self.TrainData.columns if(col.startswith('Item_Identifier'))]
+        id_cols = [col for col in self.TrainData.columns if (col.startswith('Item_Identifier'))]
         self._l_drop_cols.extend(id_cols)
-        X = self.TrainData.drop(self._l_drop_cols,axis= 1)
+        X = self.TrainData.drop(self._l_drop_cols, axis=1)
         Y = self.TrainData['Item_Outlet_Sales']
         ##
         self._l_train_columns = X.columns
         print('Size of feature space: %s' % len(self._l_train_columns))
         ##
-        d_cv = lightgbm.Dataset(X.values, label=Y.values, max_bin= self._max_bin, silent= True, free_raw_data= True)
-        self._model = lightgbm.train(self.parameters, d_cv)
+        self._model = RandomForestRegressor(
+            criterion= self.parameters['criterion'],
+            n_estimators= self.parameters['n_estimators'],
+            max_depth= self.parameters['max_depth'],
+            max_features= self.parameters['max_features'],
+        )
+        self._model.fit(X, Y)
         ##
         end = time.time()
-        print('\nTraining is done. Time elapsed %ds' % (end - start))
+        print('Fitting done. Time elapsed %ds' % (end - start))
 
         return
 
@@ -146,10 +160,10 @@ class LGB(ModelBase):
         truth_test = self.TestData['Item_Outlet_Sales']
         ## RMSE
         diff = (pred_test - truth_test)
-        rmse = np.sqrt(np.sum(diff * diff)/len(diff))
+        rmse = np.sqrt(np.sum(diff * diff) / len(diff))
 
         ##
         end = time.time()
-        print('\n Prediction done. Time consumed %ds' % (end - start))
+        print('Prediction done. Time consumed %ds' % (end - start))
 
         return rmse
