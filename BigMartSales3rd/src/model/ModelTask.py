@@ -97,7 +97,7 @@ class ModelTask:
         return OutputParams
 
     """
-    Inferring for all models of specified strategy.
+    Inferring for all models of specified strategy
     """
     def __LaunchInferTask(self, strategy, InputDir, OutputDir):
         ## load best parameters
@@ -140,7 +140,7 @@ class ModelTask:
         return
 
     """ 
-    Agggregate all models of strategies in current layer.
+    Agggregate all models of specified strategies in current layer
     """
     def __LaunchAggregateTask(self, l_variant_model, InputDir, OutputDir):
         """"""
@@ -213,8 +213,9 @@ class ModelTask:
 
         return
 
+    ## @mode: task mode, none for all tasks while other values demonstrate for single task
     ## @full: whether aggregate all strategies specified in parameter file or not
-    def run(self, full= False):
+    def run(self, mode= None, full= False):
         """"""
         d_level_params = self._d_params['L%s' % self._level]
         tasks = ['train', 'infer', 'aggregate']
@@ -230,17 +231,19 @@ class ModelTask:
             if (os.path.exists(OutputDir) == False):
                 os.makedirs(OutputDir)
 
-            ## just aggregate all models specified in parameter file, need to make sure that inferences of these models already done
-            if((full == True) & (i < len(tasks) - 1)):
+            ## skip others while in single task mode
+            if((mode != None) & (tasks[i] != mode)):
                 continue
 
             s = time.time()
             ## deal task
             if(tasks[i] == 'aggregate'):
                 l_variant_model = []
-                if(full == False):
+                ## @static strategies, aggregate all models specified in parameter file, need to make sure that inferences of these models already done
+                ## @dynamic strategies, aggregate all models specified in list
+                if(full == False): ## use dynamic strategies
                     l_strategy = self._strategies
-                else:
+                else: ## use static strategies specified in parameter file
                     l_strategy = [k for k in self._d_params['L%s' % self._level]]
                 for strategy in l_strategy:
                     for variant in self._d_params['L%s' % self._level][strategy]['variants']:

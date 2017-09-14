@@ -26,6 +26,8 @@
 							"bagging_fraction": 0.85,
 							"bagging_freq": 12,
 							"min_hessian": 0.01,
+
+							'max_bin': 63,
 						},
 						{
 							"boosting": "gbdt",
@@ -41,6 +43,8 @@
 							"bagging_fraction": 0.85,
 							"bagging_freq": 12,
 							"min_hessian": 0.01,
+
+							'max_bin': 63,
 						},
 						{
 							"boosting": "gbdt",
@@ -56,6 +60,8 @@
 							"bagging_fraction": 0.85,
 							"bagging_freq": 12,
 							"min_hessian": 0.01,
+
+							'max_bin': 63,
 						},
 						{
 							"boosting": "gbdt", "objective": "regression_l2",
@@ -70,6 +76,8 @@
 							"bagging_fraction": 0.85,
 							"bagging_freq": 12,
 							"min_hessian": 0.01,
+
+							'max_bin': 63,
 						},
 						{
 							"boosting": "gbdt",
@@ -85,6 +93,8 @@
 							"bagging_fraction": 0.85,
 							"bagging_freq": 12,
 							"min_hessian": 0.01,
+
+							'max_bin': 63,
 						},
 						{
 							"boosting": "gbdt",
@@ -100,6 +110,8 @@
 							"bagging_fraction": 0.85,
 							"bagging_freq": 12,
 							"min_hessian": 0.01,
+
+							'max_bin': 63,
 						},
 						{
 							"boosting": "gbdt",
@@ -115,6 +127,8 @@
 							"bagging_fraction": 0.85,
 							"bagging_freq": 12,
 							"min_hessian": 0.01,
+
+							'max_bin': 63,
 						},
 						{
 							"boosting": "gbdt",
@@ -130,6 +144,8 @@
 							"bagging_fraction": 0.85,
 							"bagging_freq": 12,
 							"min_hessian": 0.01,
+
+							'max_bin': 63,
 						},
 					]
 			},
@@ -254,6 +270,8 @@
 							"bagging_fraction": 0.85,
 							"bagging_freq": 12,
 							"min_hessian": 0.0001,
+
+							'max_bin': 63,
 						},
 						{
 							"boosting": "gbdt",
@@ -269,6 +287,8 @@
 							"bagging_fraction": 0.85,
 							"bagging_freq": 12,
 							"min_hessian": 0.0001,
+
+							'max_bin': 63,
 						},
 						{
 							"boosting": "gbdt",
@@ -284,6 +304,8 @@
 							"bagging_fraction": 0.85,
 							"bagging_freq": 12,
 							"min_hessian": 0.0001,
+
+							'max_bin': 63,
 						},
 					]
 				},

@@ -9,8 +9,6 @@ from util.DataUtil import DataUtil
 
 class LGB(ModelBase):
     """"""
-    _max_bin = 63
-
     _l_drop_cols = ['Item_Outlet_Sales', 'index']
 
     ## training, parameter tuning for single L1
@@ -128,7 +126,7 @@ class LGB(ModelBase):
         self._l_train_columns = X.columns
         print('Size of feature space: %s' % len(self._l_train_columns))
         ##
-        d_cv = lightgbm.Dataset(X.values, label=Y.values, max_bin= self._max_bin, silent= True, free_raw_data= True)
+        d_cv = lightgbm.Dataset(X.values, label=Y.values, max_bin= self.parameters['max_bin'], silent= True, free_raw_data= True)
         self._model = lightgbm.train(self.parameters, d_cv)
         ##
         end = time.time()
